@@ -7,8 +7,7 @@
     "sourceMap": true,
     "resolveJsonModule": true,
     "lib": [
-      "es6",
-      "dom"
+      "es2019",
     ],
     "esModuleInterop": true
   },

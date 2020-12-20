@@ -1,6 +1,6 @@
 import Parser from 'rss-parser';
-import { forkJoin, of, from } from 'rxjs';
-import { map, first, take, catchError, concatMap } from 'rxjs/operators';
+import { forkJoin, of, from, Observable } from 'rxjs';
+import { tap, map, first, take, catchError, concatMap, mergeMap, toArray, filter, mergeAll } from 'rxjs/operators';
 
 const parser = new Parser();
 
@@ -16,21 +16,42 @@ const targetFeeds = {
   // oann: from(parser.parseURL('https://www.oasdffdnn.com/csfdsaflkjategory/newsroom/feed/')).pipe(catchError(error => of(error))),
 }
 
-// TODO:
+const feeds = [
+  { name: 'cnn', url: 'http://rss.cnn.com/rss/cnn_topstories.rss' },
+  { name: 'nytimes', url: 'https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml' },
+  // { name: 'wapo', url: 'http://feeds.washingtonpost.com/rss/national' },
+  // { name: 'npr', url: 'https://feeds.npr.org/1001/rss.xml' },
+  // { name: 'foxnews', url: 'http://feeds.foxnews.com/foxnews/national' },
+  // { name: 'oann', url: 'https://www.oann.com/category/newsroom/feed/' },
+  // error scenario for bad url
+  // { name: 'oann', url: 'https://www.oasdffdnn.com/csfdsaflkjategory/newsroom/feed/' },
+]
 
+// I probably want the resulting structure to be: 
+const singleStructure = { name: 'cnn', items: [{ myItems: 'hi' }, { myItems: 'hi' }] }
+
+// get data
+const feedObs = of(feeds);
+const res = feedObs.pipe(
+  concatMap((feed) => {
+    const networkRequests = feed.map(val => from(parser.parseURL(val.url)).pipe(catchError(error => of(error))))
+    return forkJoin(networkRequests)
+  }),
+  mergeAll(), // unnests the object into an array
+  map(val => val.items) // strip unnecessary metadata and get the rss items and return the target rss items
+)
+// res.subscribe(signal => console.log('signal', signal))
+// filter data
+res.subscribe(console.log)
+// res.subscribe()
+
+// TODO:
 // should change data structure for urls to be [{name: 'cnn', observable: 'whatever'}]
 // basically follow this: https://stackoverflow.com/questions/58963598/angular-2-subscribed-array-of-object-with-nested-subscribes-in-loop-foreach
-const observable = forkJoin(targetFeeds).pipe(map(res => { console.log(res['wapo']) })); // gets wapo from feeds
-
-observable.subscribe();
-
-// observable.subscribe(console.log);
-
-
-
+// const observable = forkJoin(targetFeeds).pipe(map(res => { console.log(res['wapo']) })); // gets wapo from feeds
+// observable.subscribe();
 
 // lesson: https://www.learnrxjs.io/learn-rxjs/operators/transformation/map#signature-map-project-function-thisarg-any-observable
 // forkjoin: https://www.learnrxjs.io/learn-rxjs/operators/combination/forkjoin
-
 // flatten object with some nice syntax: 
 // https://stackoverflow.com/questions/58963598/angular-2-subscribed-array-of-object-with-nested-subscribes-in-loop-foreach

@@ -4,3 +4,7 @@ build/
 lib/
 bin/
 shared-local-instance.db
+__pycache__/
+*.py[cod]
+lib/
+dist/

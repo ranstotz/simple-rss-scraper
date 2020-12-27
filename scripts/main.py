@@ -39,30 +39,26 @@ def get_articles(target_rss_feed: str, max_articles: int) -> list:
     return articles
 
 
-articles = get_articles(feeds[1]['url'], max_articles)
+test_articles = get_articles(feeds[1]['url'], max_articles)
 
 
 def filter_article(article: dict, filter_fields: list) -> dict:
     ''' takes full article and filters the fields based on filter_field list provided. '''
-    def field_sanitizer(_article: dict, _field: str) -> str:
+    def field_sanitizer(d: dict, k: str) -> str:
         ''' sanitizes field and returns empty field if dict key doesn't exist. '''
-        res = ''
-        try:
-            res = sanitize_input(_article[_field])
-        except:
-            res = ''
-        return res
-
+        if k in d:
+            return sanitize_input(d[k])
+        return ''
     filtered_dict = {field: field_sanitizer(
         article, field) for field in filter_fields}
     return filtered_dict
 
 
 # gather all returned articles and filter them
-filtered_articles = [filter_article(article, target_keys)
-                     for article in articles]
+test_filtered_articles = [filter_article(article, target_keys)
+                          for article in test_articles]
 
-pp.pprint(filtered_articles)
+# pp.pprint(test_filtered_articles)
 
 feed_data = []
 for item in feeds:
